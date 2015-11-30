@@ -84,7 +84,7 @@ void zapisCislo(int cislo, byte poradi[])
       zobrazCislo(ciselnik, jednotky);
       provedeno1 = 1;
       provedeno2 = 0;
-      prevMillis = millis() + 10;
+      prevMillis = millis() + 5;
     }
     if((millis() > prevMillis) && (provedeno2 == 0)) {
       digitalWrite(poradi[0],1);
@@ -92,7 +92,7 @@ void zapisCislo(int cislo, byte poradi[])
       zobrazCislo(ciselnik, desitky);
       provedeno1 = 0;
       provedeno2 = 1;
-      prevMillis = millis() + 10;        
+      prevMillis = millis() + 5;        
     }
   }
   else
@@ -103,24 +103,44 @@ void zapisCislo(int cislo, byte poradi[])
 
 long teplotaMillis = 0;
 int teplota = 0;
+int teplotaSet = 0;
+int teplotaSetMillis = 0;
+
+int tlStav = 0;
 
 void setup() {
   nastavVystup(ciselnik,7);
   nastavVystup(LP,2);
   Serial.begin(9600);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  //pinMode(13, INPUT); NELZE!!
   
-
 }
 
 void loop() {
+ //snímání tlačítek
+ tlStav = !digitalRead(A0);
+ //co se má v programu změnit
+ if(tlStav == 1)
+ {
+  teplotaSet++;
+  teplotaSetMillis = millis() + 1000;
+  Serial.println("jedu");
+ }
+ //získávání teploty z teploměru
  if(millis()>teplotaMillis) {
  sensors.requestTemperatures();
- Serial.println(sensors.getTempCByIndex(0));
+ //Serial.println(sensors.getTempCByIndex(0));
  teplota = round(sensors.getTempCByIndex(0));
  //Serial.println(teplota);
- teplotaMillis = millis() + 5000;
+ teplotaMillis = millis() + 6000;
  }
- 
- zapisCislo(teplota, LP);
+ //co se má na displeji zobrazit
+ if(teplotaSetMillis>millis())
+ {
+  zapisCislo(teplotaSet, LP);
+ }
+ else zapisCislo(teplota, LP);
 
 }

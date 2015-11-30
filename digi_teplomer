@@ -104,38 +104,48 @@ void zapisCislo(int cislo, byte poradi[])
 unsigned long teplotaMillis = 0;
 int teplota = 0;
 int teplotaSet = 0;
+int teplotaRozsah = 0;
+int chlazeni = 0;
+int ohrev = 0;
 unsigned long teplotaSetMillis = 0;
+unsigned long teplotaRozsahMillis = 0;
 bool bylo = 0;
 
 int tlStavPlus = 0;
-int tlStavSet = 0;
+int tlStavRozsah = 0;
 int tlStavMinus = 0;
+
+int vysChlazeni = A3;
+int vysOhrev = A4;
 
 void setup() {
   nastavVystup(ciselnik,7);
   nastavVystup(LP,2);
   Serial.begin(9600);
+  
   pinMode(A0, INPUT);
   pinMode(A1, INPUT);
   pinMode(A2, INPUT);
   
+  pinMode(vysChlazeni, OUTPUT);
+  pinMode(vysOhrev, OUTPUT);  
 }
 
 void loop() {
  //snímání tlačítek
  tlStavPlus = !digitalRead(A0);
- tlStavSet = !digitalRead(A2);
+ tlStavRozsah = !digitalRead(A2);
  tlStavMinus = !digitalRead(A1);
  
  //co se má v programu změnit
- if((tlStavPlus == 1)&&(tlStavSet != 1)&&(bylo == 0))
+ if((tlStavPlus == 1)&&(tlStavRozsah != 1)&&(bylo == 0))
  { 
   if(teplotaSet > 98) teplotaSet = 0;
   else teplotaSet++;  
   teplotaSetMillis = millis() + 1000;
   bylo = 1;  
  }
- else if((tlStavMinus == 1)&&(tlStavSet != 1)&&(bylo == 0))
+ else if((tlStavMinus == 1)&&(tlStavRozsah != 1)&&(bylo == 0))
  { 
   if(teplotaSet < 1) teplotaSet = 99;
   else teplotaSet--;  
@@ -143,7 +153,22 @@ void loop() {
   bylo = 1;
     
  }
- else if((tlStavPlus == 0)&&(tlStavMinus == 0)) bylo = 0;
+ else if((tlStavPlus == 1)&&(tlStavRozsah == 1)&&(bylo == 0))
+ { 
+  if(teplotaRozsah > 98) teplotaRozsah = 0;
+  else teplotaRozsah++;  
+  teplotaRozsahMillis = millis() + 1000;
+  bylo = 1;  
+ }
+ else if((tlStavMinus == 1)&&(tlStavRozsah == 1)&&(bylo == 0))
+ { 
+  if(teplotaRozsah < 1) teplotaRozsah = 99;
+  else teplotaRozsah--;  
+  teplotaRozsahMillis = millis() + 1000;
+  bylo = 1;
+    
+ }
+ else if((tlStavPlus == 0)&&(tlStavMinus == 0)/*&&(tlStavRozsah == 0)*/) bylo = 0;
  
  //získávání teploty z teploměru
  if(millis()>teplotaMillis) {
@@ -157,6 +182,18 @@ void loop() {
  {
   zapisCislo(teplotaSet, LP);
  }
+ else if((teplotaRozsahMillis>millis())&&(teplotaSetMillis<millis())) 
+ {
+  zapisCislo(teplotaRozsah, LP);
+ }
  else zapisCislo(teplota, LP);
 
+ //kdy má relé sepnout
+ chlazeni = teplotaSet + teplotaRozsah;
+ ohrev = teplotaSet - teplotaRozsah;
+ 
+ if(chlazeni < teplota) digitalWrite(vysChlazeni, 1);
+ else digitalWrite(vysChlazeni, 0);
+ if(ohrev > teplota) digitalWrite(vysOhrev, 1);
+ else digitalWrite(vysOhrev, 0);
 }

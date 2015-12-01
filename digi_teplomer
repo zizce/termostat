@@ -102,11 +102,11 @@ void zapisCislo(int cislo, byte poradi[])
 }
 
 unsigned long teplotaMillis = 0;
-int teplota = 0;
-int teplotaSet = 0;
-int teplotaRozsah = 0;
-int chlazeni = 0;
-int ohrev = 0;
+unsigned int teplota = 0;
+unsigned int teplotaSet = 0;
+unsigned int teplotaRozsah = 0;
+unsigned int chlazeni = 0;
+unsigned int ohrev = 0;
 unsigned long teplotaSetMillis = 0;
 unsigned long teplotaRozsahMillis = 0;
 bool bylo = 0;
@@ -121,7 +121,7 @@ int vysOhrev = A4;
 void setup() {
   nastavVystup(ciselnik,7);
   nastavVystup(LP,2);
-  Serial.begin(9600);
+  //Serial.begin(9600);
   
   pinMode(A0, INPUT);
   pinMode(A1, INPUT);
@@ -192,8 +192,9 @@ void loop() {
  chlazeni = teplotaSet + teplotaRozsah;
  ohrev = teplotaSet - teplotaRozsah;
  
- if(chlazeni < teplota) digitalWrite(vysChlazeni, 1);
+ 
+ if(chlazeni > teplota) digitalWrite(vysChlazeni, 1);
  else digitalWrite(vysChlazeni, 0);
- if(ohrev > teplota) digitalWrite(vysOhrev, 1);
+ if(ohrev < teplota) digitalWrite(vysOhrev, 1);
  else digitalWrite(vysOhrev, 0);
 }
